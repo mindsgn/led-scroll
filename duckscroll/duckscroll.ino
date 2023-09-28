@@ -1,15 +1,13 @@
 #include "GSMinit.h"
 #include "MatrixFont.h"
 #include <FastLED.h>
-#include <QueueArray3.h>
+#include <QueueArray.h>
 
 #define CHIPSET     WS2811
 #define LED_PIN     11
 #define COLOR_ORDER RGB
 #define BRIGHTNESS  255
 QueueArray <char> queue;
-QueueArray <char> queue1;
-QueueArray <char> queue2;
 
 int textSpeed = 20;
 boolean animating = false;
@@ -43,15 +41,12 @@ void setup() {
   delay(3000);
   Serial1.begin(115200);
   delay(10);
-  //High baud rate required when interfacing with both the MQTT broker and LED matrix to reduce delays related to matrix updates
-  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050); //Initialize LED matrix
-  
+  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
   bootGSM();
-  //Initialize GSM modem
-  mqttClient.setServer(broker, 11725); //Establish connection with MQTT broker setServer(brokerIP, port)
+  mqttClient.setServer(broker, 11725);
   mqttClient.connect("duckduckgoose", "enhwevjl", "bE4i40iYYuJg", "duck", 0, true, "");
   mqttClient.subscribe("duck");
-  mqttClient.setCallback(retrieveData); //Creat eventhandler to call function retrieveData on reciept of a new message
+  mqttClient.setCallback(retrieveData);
 }
 
 void loop() {
@@ -72,7 +67,7 @@ void loop() {
 boolean mqttConnect() {
   Serial.print("Connecting to ");
   Serial.print(broker);
-  if (!mqttClient.connect("duckduckgoose", "enhwevjl", "bE4i40iYYuJg", "duck", 0, true, "")) { //connect(id,user,pass, willTopic, willQos, boolean willRetain, willMessage)
+  if (!mqttClient.connect("duckduckgoose", "enhwevjl", "bE4i40iYYuJg", "duck", 0, true, "")) {
     Serial.println("Failed to connect to MQTT. Rebooting GSM...");
     bootGSM();
     return false;
@@ -83,10 +78,10 @@ boolean mqttConnect() {
 }
 
 void retrieveData(char* topic, byte* payload, unsigned int len){
-  //Function used to print out data retrieved from the MQTT broker
+  
   message = "";
   temp = "";
-  Serial.println("Topic: " + String(topic)); //Print topic with which the client is subscribed to within broker
+  Serial.println("Topic: " + String(topic));
   for(int i = 0; i < len; i++){
       temp += (char(payload[i])); 
   }
