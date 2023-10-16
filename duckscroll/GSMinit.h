@@ -10,17 +10,23 @@ void bootGSM(){
   //Function used to intitialize GSM modem as primary Internet communication device
   Serial.println("Initializing modem");
   modem.restart(); //Reboot GSM modem (ensures the module doesnt have any lingering connections)
-  Serial.println("Modem: " + modem.getModemInfo()); //Details modem model and airtime balance
-  Serial.print("Waiting for network ");
+  Serial.println("Modem: " + modem.getModemInfo());
+    Serial.println("Waiting for network ");
+    Serial.println("network: " + modem.isNetworkConnected());
   if (!modem.waitForNetwork()){ 
-    //Modem fails to connect to a network
     Serial.println("Fail");
     bootGSM();
   }
+
+  
   Serial.println("OK");
-  Serial.print("Connecting to internet ");
-  if (!modem.gprsConnect("internet", "", "")) { //gprsConnect(apr, username, password)
-    //Modem fails to access the Internet
+  Serial.println("Connecting to internet ");
+  Serial.println("signal: " + modem.getSignalQuality());
+  Serial.println("gprs: " + modem.isGprsConnected());
+  Serial.println("Operator: " + modem.getOperator());
+
+
+  if (!modem.gprsConnect("internet", "", "")) {
     Serial.println("Fail");
     bootGSM();
   }

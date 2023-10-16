@@ -5,7 +5,7 @@
 
 #define CHIPSET     WS2811
 #define LED_PIN     11
-#define COLOR_ORDER RGB
+#define COLOR_ORDER GRB
 #define BRIGHTNESS  255
 QueueArray <char> queue;
 
@@ -25,8 +25,8 @@ boolean bLeds [NUM_LEDS];
 char character = alphaNums[0];
 int characterPos = 0;
 const bool    kMatrixSerpentineLayout = true;
-const char* broker = "m10.cloudmqtt.com";
-String message = "DUCKDUCKGOOSESTORE.COM            ";
+const char* broker = "mqtt.goodgoodgood.co.za";
+String message = "DUCKDUCKGOOSESTORE.CO.ZA              ";
 String temp = "";
 int tred, tblue, tgreen = 255; 
 int bred, bblue, bgreen = 0;
@@ -34,46 +34,16 @@ int stringLen = message.length();
 long lastReconnectAttempt = 0;
 bool isText = true;
 
-void setup() {
-  Serial.begin(115200);
-  delay(10);
-  Serial2.begin(115200);
-  delay(3000);
-  Serial1.begin(115200);
-  delay(10);
-  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
-  bootGSM();
-  mqttClient.setServer(broker, 11725);
-  mqttClient.connect("duckduckgoose", "enhwevjl", "bE4i40iYYuJg", "duck", 0, true, "");
-  mqttClient.subscribe("duck");
-  mqttClient.setCallback(retrieveData);
-}
-
-void loop() {
-  if (mqttClient.connected()) {
-    mqttClient.loop();
-    scrollText();
-  } else {
-    unsigned long t = millis();
-    if (t - lastReconnectAttempt > 10000L) {
-      lastReconnectAttempt = t;
-      if (mqttConnect()) {
-        lastReconnectAttempt = 0;
-      }
-    }
-  }
-}
-
 boolean mqttConnect() {
   Serial.print("Connecting to ");
   Serial.print(broker);
-  if (!mqttClient.connect("duckduckgoose", "enhwevjl", "bE4i40iYYuJg", "duck", 0, true, "")) {
+  if (!mqttClient.connect("duckduckgoose", "banner", "93paEtwNqcgM9q", "banner", 0, true, "")) {
     Serial.println("Failed to connect to MQTT. Rebooting GSM...");
     bootGSM();
     return false;
   }
   Serial.println(" OK");
-  mqttClient.subscribe("duck");
+  mqttClient.subscribe("banner");
   return mqttClient.connected();
 }
 
@@ -158,6 +128,7 @@ void retrieveData(char* topic, byte* payload, unsigned int len){
   }
 }
 
+
 uint16_t XY( uint8_t x, uint8_t y)
 {
   uint16_t i;
@@ -178,7 +149,6 @@ uint16_t XYsafe( uint8_t x, uint8_t y)
   if ( y >= kMatrixHeight) return -1;
   return XY(x, y);
 }
-
 
 void populateMessage(uint8_t choice) {
   stringLen = message.length();
@@ -308,4 +278,32 @@ void scrollText() {
     
     while (millis() - timer < textSpeed);
     FastLED.show();
+}
+
+void setup() {
+  Serial.begin(115200);
+  delay(10);
+  Serial2.begin(115200);
+  delay(10);
+  FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
+  bootGSM();
+  mqttClient.setServer(broker, 1883);
+  mqttClient.connect("duckduckgoose", "banner", "93paEtwNqcgM9q", "banner", 0, true, "");
+  mqttClient.subscribe("banner");
+  mqttClient.setCallback(retrieveData);
+}
+
+void loop() {
+  if (mqttClient.connected()) {
+    mqttClient.loop();
+    scrollText();
+  } else {
+    unsigned long t = millis();
+    if (t - lastReconnectAttempt > 10000L) {
+      lastReconnectAttempt = t;
+      if (mqttConnect()) {
+        lastReconnectAttempt = 0;
+      }
+    }
+  }
 }
