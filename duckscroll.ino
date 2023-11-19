@@ -2,6 +2,7 @@
 #include "MatrixFont.h"
 #include <FastLED.h>
 #include <QueueArray.h>
+#include <TeensyThreads.h>
 
 #define CHIPSET     WS2811
 #define LED_PIN     11
@@ -22,11 +23,11 @@ CRGB leds_plus_safety_pixel[ NUM_LEDS + 1];
 CRGB* const leds( leds_plus_safety_pixel + 1);
 boolean bLeds [NUM_LEDS];
 
-char character = alphaNums[0];
+char character = alphabetAndNumbers[0];
 int characterPos = 0;
 const bool    kMatrixSerpentineLayout = true;
 const char* broker = "mqtt.goodgoodgood.co.za";
-String message = "DUCKDUCKGOOSESTORE.CO.ZA              ";
+String message = "DUCKDUCKGOOSESTORE.COM             ";
 String temp = "";
 int tred, tblue, tgreen = 255; 
 int bred, bblue, bgreen = 0;
@@ -37,7 +38,7 @@ bool isText = true;
 boolean mqttConnect() {
   Serial.print("Connecting to ");
   Serial.print(broker);
-  if (!mqttClient.connect("duckduckgoose", "banner", "93paEtwNqcgM9q", "banner", 0, true, "")) {
+  if (!mqttClient.connect("store-banner", "banner", "93paEtwNqcgM9q", "banner", 0, true, "")) {
     Serial.println("Failed to connect to MQTT. Rebooting GSM...");
     bootGSM();
     return false;
@@ -194,10 +195,10 @@ void scrollText() {
     for (int i = 0; i < 10; i++) {
       int posTemp  = 0;
       for (int q = 0; q < FONTSIZE; q++) {
-        if (character == alphaNums[q] ) {
+        if (character == alphabetAndNumbers[q] ) {
             isText = true;
             posTemp = q;
-            if (alphaNumsFont[posTemp][i][characterPos] == 1) {
+            if (alphabetAndNumbersMatrix[posTemp][i][characterPos] == 1) {
                 bLeds[XY(kMatrixWidth - 1, i)] = 1;
             }  
       
@@ -206,10 +207,22 @@ void scrollText() {
             }
         }
 
-        else if(character == imageNums[q] ) {
+        else if(character == smallImages[q] ) {
             isText = false;
             posTemp = q;
-            if (imageNumsFont[posTemp][i][characterPos] == 1) {
+            if (smallImagesMatrix[posTemp][i][characterPos] == 1) {
+                bLeds[XY(kMatrixWidth - 1, i)] = 1;
+            }  
+      
+            else {
+                bLeds[XY(kMatrixWidth - 1, i)] = 0;
+            }
+        }
+
+        else if(character == largeImages[q] ) {
+            isText = false;
+            posTemp = q;
+            if (largeImagesMatrix[posTemp][i][characterPos] == 1) {
                 bLeds[XY(kMatrixWidth - 1, i)] = 1;
             }  
       
@@ -288,15 +301,14 @@ void setup() {
   FastLED.addLeds<CHIPSET, LED_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection(TypicalSMD5050);
   bootGSM();
   mqttClient.setServer(broker, 1883);
-  mqttClient.connect("duckduckgoose", "banner", "93paEtwNqcgM9q", "banner", 0, true, "");
+  mqttClient.connect("store-banner", "banner", "93paEtwNqcgM9q", "banner", 0, true, "");
   mqttClient.subscribe("banner");
   mqttClient.setCallback(retrieveData);
 }
 
-void loop() {
-  if (mqttClient.connected()) {
+void connect(){
+ if (mqttClient.connected()) {
     mqttClient.loop();
-    scrollText();
   } else {
     unsigned long t = millis();
     if (t - lastReconnectAttempt > 10000L) {
@@ -306,4 +318,9 @@ void loop() {
       }
     }
   }
+}
+
+void loop() {
+  scrollText();
+  connect();
 }
